@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chess queens puzzle</title>
+<meta charset="utf-8">
+	<style>
+		#container {
+			display: -webkit-flex;
+			-webkit-flex-wrap: wrap;
+			display: flex;
+			flex-wrap: wrap;
+		}
+		table {
+			margin-top: 20px;
+			margin-left: 10px;
+		}
+		table:before {
+			content: attr(data-before);
+		}
+		td {
+			width: 20px;
+			height: 20px;
+		}
+		tr:nth-child(odd) td:nth-child(odd) {
+			background-color: #ebe7ca;
+		}
+		tr:nth-child(odd) td:nth-child(even) {
+			background-color: #e68e50;
+		}
+		tr:nth-child(even) td:nth-child(odd) {
+			background-color: #e68e50;
+		}
+		tr:nth-child(even) td:nth-child(even) {
+			background-color: #ebe7ca;
+		}
+	</style>
+</head>
+<body>
+
+	<form id="form">
+		<label for="boardSize">Board size:</label>
+		<input id="boardSize" value="4">
+		<input type="submit" value="Go!">
+	</form>
+
+	<h2 id="result"></h2>
+	<div id="container"></div>
+
+<script>
+
+	const MARKED = -1;
+
+	let boardSize;
+	let boardArray;
+	let total;
+
+	let container = document.getElementById('container');
+	let result = document.getElementById('result');
+	let form = document.getElementById('form');
+	form.onsubmit = start;
+
+	function start(e)
+	{
+		total = 0;
+		boardArray = [];
+		boardSize = document.getElementById('boardSize').value;
+		container.innerHTML = '';
+		result.innerHTML = '';
+
+		if (!Number.isInteger(+boardSize) || boardSize < 1 || boardSize > 10)
+		{
+			alert('Set board size between 1 and 10!');
+			e.preventDefault();
+			return false;
+		}
+
+		for (var i = 0; i < boardSize; i++)
+		{
+			boardArray[i] = [];
+			for (var j = 0; j < boardSize; j++)
+			{
+				boardArray[i][j] = 0;
+			}
+		}
+		letsGo(boardArray,0);
+		result.innerHTML = 'Variants count: ' + total;
+		e.preventDefault();
+	}
+
+	function copyArr(arr)
+	{
+		var newArr = [];
+		for (var i = 0; i < arr.length; i++)
+		{
+			newArr[i] = [];
+			for (var j = 0; j < arr.length; j++)
+			{
+				newArr[i][j] = arr[i][j];
+			}
+		}
+		return newArr;
+	}
+
+	function setMarks(arr,row,col)
+	{
+		for (var i = row+1; i < arr.length; i++)
+		{
+			// mark current column:
+			arr[i][col] = MARKED;
+			// mark diagonal to right-bottom:
+			if (col+(i-row) < arr.length)
+				arr[i][col+(i-row)] = MARKED;
+			// mark diagonal to left-bottom:
+			if (col-(i-row) >= 0)
+				arr[i][col-(i-row)] = MARKED;
+		}
+		return arr;
+	}
+
+	//
+	// Output results for the next variant.
+	//
+	function success(arr)
+	{
+		total++;
+		var div = document.createElement('div');
+		container.appendChild(div);
+		var table = document.createElement('table');
+		div.appendChild(table);
+		for (var i = 0; i < boardArray.length; i++)
+		{
+			var tr = document.createElement('tr');
+			table.appendChild(tr);
+			for (var j = 0; j < boardArray.length; j++)
+			{
+				var td = document.createElement('td');
+				if (arr[i][j] == 1)
+					td.innerHTML = '&#9819';
+				tr.appendChild(td);
+			}
+		}
+		table.setAttribute("border", "1px");
+		table.setAttribute('data-before', total);
+	}
+
+	//
+	// Calculations.
+	//
+	function letsGo(arr,k)
+	{
+		for (var i = 0; i < arr[k].length; i++)
+		{
+			if (arr[k][i] != MARKED)
+			{
+				arr[k][i] = 1;
+				var arr2 = copyArr(arr);
+				arr = setMarks(arr, k, i);
+				if (k < arr.length-1)
+				{
+					letsGo(arr,k+1);
+				}
+				else
+				{
+					success(arr);
+				}
+				arr = copyArr(arr2);
+				arr[k][i] = 0;
+			}
+		}
+	}
+
+</script>
+
+</body>
+</html>
